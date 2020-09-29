@@ -1,0 +1,35 @@
+# проверка валидности кредитной карты по алгоритму Луна
+
+class check_validate_card():
+
+    def check(self, first_element, card):
+
+        for i in range(first_element, len(card) - 1, 2):
+            if card[i] * 2 < 9:
+                card[i] = card[i] * 2
+            elif card[i] * 2 > 9:
+                card[i] = (card[i] * 2) - 9
+
+    def myfunc(self, var):
+
+        card = [int(x) for x in str(var)]
+        #  print(card)
+        if (len(card) - 1) % 2 != 0:
+            self.check(0, card)
+        elif (len(card) - 1) % 2 == 0:
+            self.check(1, card)
+        if sum(card) % 10 == 0:
+            correctness = 'Карта существует'
+        else:
+            correctness = 'Карта не существует'
+
+        return correctness
+
+if __name__ == '__main__':
+   # Here we can make console input and check how function works
+
+   var = input()
+
+   result = check_validate_card().myfunc(var)
+
+   print(result)
