@@ -1,0 +1,105 @@
+# игра в блэкджек (двадцать одно)
+
+import random
+
+class MyClass():
+
+    # раздача рандомных карт
+    def dealt_card(self, deck):
+        card = random.choice(list(deck.items()))
+        del deck[card[0]]
+        return card
+
+    # подсчет очков у диллера или игрока
+    def score(self, cards):
+        summa = 0
+        for i in cards:
+            summa += i[1]
+        return summa
+
+    # значения и масти карт игрока или диллера согласно словарю deck
+    def card_name(self, cards):
+        card_set = ''
+        for i in cards:
+            card_set += str(i[0])
+            card_set += ','
+        return card_set
+
+    # проверка на выйгрыш или проигрыш - если не то и не другое, то предлагается действие
+    def check_win(self, player, dealer, var, deck):
+        if self.score(player) == self.score(dealer):
+            action = 'Ровно'
+        elif self.score(player) == 21 or (self.score(dealer) > 21 and self.score(player) < 21):
+            action = 'Ваш выйгрыш '
+            var = int(float(var) * 1.5)
+            print(var)
+        elif self.score(dealer) == 21:
+            action = 'Диллер выйграл'
+            var = 0
+        elif self.score(player) > 21:
+            action = 'Перебор'
+            var = 0
+        else:
+            action = 'Ваши действия?'
+
+    # значение туза изначально 11, но пока общая сумма карт не больше 21, далее 1
+        if self.score(player) + self.score(dealer) > 21:
+            deck.update({'T♠': 1, 'T♥': 1, 'T♦': 1, 'T♣': 1})
+        return action
+
+    # вывод на экран выданных игроку и диллеру карт
+    def display_cards(self, player, dealer):
+        print('Ваши карты', self.card_name(player))
+        print('Карты диллера', self.card_name(dealer))
+
+    # логика игры:
+    def myfunc(self, var):
+
+        deck = {'2♠': 2, '3♠': 3, '4♠': 4, '5♠': 5, '6♠': 6, '7♠': 7, '8♠': 8, '9♠': 9, '10♠': 10, 'J♠': 10, 'Q♠': 10, 'K♠': 10, 'T♠': 11,
+                '2♥': 2, '3♥': 3, '4♥': 4, '5♥': 5, '6♥': 6, '7♥': 7, '8♥': 8, '9♥': 9, '10♥': 10, 'J♥': 10, 'Q♥': 10, 'K♥': 10, 'T♥': 11,
+                '2♣': 2, '3♣': 3, '4♣': 4, '5♣': 5, '6♣': 6, '7♣': 7, '8♣': 8, '9♣': 9, '10♣': 10, 'J♣': 10, 'Q♣': 10, 'K♣': 10, 'T♣': 11,
+                '2♦': 2, '3♦': 3, '4♦': 4, '5♦': 5, '6♦': 6, '7♦': 7, '8♦': 8, '9♦': 9, '10♦': 10, 'J♦': 10, 'Q♦': 10, 'K♦': 10, 'T♦': 11}
+
+        # первая раздача
+        i = 0
+        player = []
+        dealer = []
+        print('Начинаю раздачу:')
+        while i < 2:
+            player.append(self.dealt_card(deck))
+            i += 1
+        dealer.append(self.dealt_card(deck))
+
+        if self.score(player) + self.score(dealer) > 21:
+            deck.update({'T♠': 1, 'T♥': 1, 'T♦': 1, 'T♣': 1})
+        # цикл, в котором проверяется выйгрыш или проигрыш с помощью self.check_win(player, dealer, var, deck) != 'Ваши действия?' (если условие выполняется, значит игра 
+        # окончена и нужно вывести результаты) и предлагается выбор брать или не брать карту игроку, если игра все еще не закончилась, то есть никто пока не выйграл и не проиграл
+        while True:
+            self.display_cards(player, dealer) # вывод на экран карт
+            print(self.check_win(player, dealer, var, deck)) # проверка на выйгрыш или прогрыш
+            
+            # если выйгрыша или проигрыша не случилось, предлагается взять или отказаться от новой карты
+            choice = input() 
+            if choice == 'hit me' or choice == 'еще':
+                player.append(self.dealt_card(deck))
+                dealer.append(self.dealt_card(deck))
+
+            if choice == 'enough' or choice == 'хватит' or choice == 'достаточно':
+                dealer.append(self.dealt_card(deck))
+                self.check_win(player, dealer, var, deck)
+
+            if self.check_win(player, dealer, var, deck) != 'Ваши действия?': # если в результате проверки очков было возрашено значение, не предлагающее 'Ваши действия?', то выводим на экран карты и выводим результат игры
+                self.display_cards(player, dealer)
+                print(self.check_win(player, dealer, var, deck)) # результат игры
+                break
+        return 'Игра окончена'
+
+
+if __name__ == '__main__':
+   # Here we can make console input and check how function works
+
+   var = input('Введите ставку: ')
+
+   result = MyClass().myfunc(var)
+
+   print(result)
