@@ -1,0 +1,160 @@
+# данный класс Warrior считает и следит за уровнем, повышает ранг игрока в зависимости от результатов битвы и тренировки.
+# ведется учет данных игрока в exel файле database_statistic_player.xlsx, внося в него новые данные согласно результатам выполнения функций training и battle
+# класс Warrior принимает имя тренировки, количество получаемого опыта и минимально необходимый уровень
+# данные игрока будут храниться в exel файле, и после перезапуска класса данные сохранятся
+
+import random
+from openpyxl import load_workbook
+from math import floor
+
+
+class Warrior:
+
+    exel_file = load_workbook('database_statistic_player.xlsx')
+    exel_list = exel_file['player_1']
+    dest = 'database_statistic_player.xlsx'
+    ranks = ['Pushover', 'Novice', 'Fighter', 'Warrior', 'Veteran', 'Sage', 'Elite', 'Conqueror', 'Champion', 'Master',
+             'Greatest']
+
+    #  запись значений опыта, он приплюсовывается к имеющемуся
+    def writer_experience(self, value, cell):
+        cell.value = cell.value + value
+        self.exel_file.save(self.dest)
+        pass
+
+    #  запись значений уровня и ранга, они заменяются на новые значения
+    def writer_level_and_rank(self, level, cell):
+        cell.value = level
+        self.exel_file.save(self.dest)
+        pass
+    #  если аргумент передан, он записывается в нужную ячейку функцией writer_level_and_rank, если не передан - вернется значение ячейки, означающей текущий уровень
+    def level(self, *args):
+        cell = self.exel_list.cell(row=2, column=1)
+        for i in args:
+            self.writer_level_and_rank(i, cell)
+            return i
+        return cell.value
+
+    #  если аргумент передан, он записывается в нужную ячейку, причем суммируется с прердыдущим значением ячейки функцией writer_experience, если не передан - вернется значение ячейки, означающей текущий опыт
+    def experience(self, *args):
+        cell = self.exel_list.cell(row=2, column=2)
+        for i in args:
+            if cell.value < 10000:
+                self.writer_experience(i, cell)
+                # a = cell.value / 100 и далее level = floor(a) - так вычисляю уровень игрока (каждые 100 опыта меняется уровень, значит можно его вычислять делением опыта на 100, но округлять в меньшую сторону)
+                a = cell.value / 100
+                level = floor(a)
+                #  от опыта зависит уровень и ранг, значит вычисляю уровень и ранг в функции опыта (experience)
+                self.level(level)
+                self.rank(level)
+            elif cell.value >= 10000:
+                return cell.value
+            return i
+        return cell.value
+
+    #  если аргумент передан, он записывается в нужную ячейку функцией writer_level_and_rank, если не передан - вернется значение ячейки, означающей текущий ранг
+    def rank(self, *args):
+        cell = self.exel_list.cell(row=2, column=3)
+        for i in args:
+            #  rank = self.chek_rank(i) - выясняю с помощью функции chek_rank какой сейчас у игрока ранг и далее записываю его в соответствующую ячейку
+            rank = self.chek_rank(i)
+            self.writer_level_and_rank(rank, cell)
+            return rank
+        return cell.value
+    #  достижения записываются в столбец achievements в файле exel поочередно в следующую пустую ячейку
+    def add_achievements(self, args):
+        #  предполагается, что в игре доступно до 20 достижений
+        for i in range(2, 20, 1):
+            cell = self.exel_list.cell(row=i, column=4)
+            if cell.value is None:
+                cell.value = args
+                self.exel_file.save(self.dest)
+                break
+        pass
+    #  функция выводит список достижений, перебирая ячейки столбца achievements до момента, пока не получит пустую ячейку
+    def achievements(self):
+        lst = []
+        #  предполагается, что в игре доступно до 20 достижений
+        for i in range(2, 20, 1):
+            cell = self.exel_list.cell(row=i, column=4)
+            if cell.value:
+                lst.append(cell.value)
+            elif cell.value is None:
+                break
+        return lst
+    #  выясняю, какой ранг у игрока должен быть согласно текущему уровню
+    def chek_rank(self, level):
+        if 0 < level < 10:
+            return 'Pushover'
+        if 9 < level < 20:
+            return 'Novice'
+        if 19 < level < 30:
+            return 'Fighter'
+        if 29 < level < 40:
+            return 'Warrior'
+        if 39 < level < 50:
+            return 'Veteran'
+        if 49 < level < 60:
+            return 'Sage'
+        if 59 < level < 70:
+            return 'Elite'
+        if 69 < level < 80:
+            return 'Conqueror'
+        if 79 < level < 90:
+            return 'Champion'
+        if 89 < level < 100:
+            return 'Master'
+        if 99 < level:
+            return 'Greatest'
+
+
+    def battle(self, rank):
+
+        #  битва с противником рандомного уровня
+        enemy_level = random.randrange(1, 100, 1)
+        enemy_rank = self.chek_rank(enemy_level)  # выясняю ранг, ранг должен соотвествовать уровню
+
+        # логика зачисления опыта за бой, либо проигрыша:
+        if self.level() > 100 or self.level() < 1:
+            return 'Invalid level'
+        elif 1 <= self.level() <= 100:
+            if enemy_level < self.level():
+                if self.level() - enemy_level == 1:
+                    self.experience(5)
+                    return "A good fight"
+                else:
+                    self.experience(0)
+                    return "A good fight"
+            elif enemy_level == self.level():
+                self.experience(10)
+                return "A good fight"
+            elif enemy_level > self.level():
+                if enemy_level - self.level() < 5 or (enemy_level - self.level() >= 5 and self.ranks.index(self.rank()) == self.ranks.index(enemy_rank)):
+                    diff = enemy_level - self.level()
+                    exp = 20*diff*diff
+                    self.experience(exp)
+                    return "A good fight"
+                elif enemy_level - self.level() >= 5 and self.ranks.index(rank) < self.ranks.index(enemy_rank):
+                    return 'You\'ve been defeated'
+
+
+    def training(self, params): # принимает 3 аргумента: имя тренировки, количество получаемого опыта и минимально необходимый уровень.
+        # логика зачисления опыта и достижения, если опыт равен или больше требуемого (params[2]):
+        if self.level() >= params[2]:
+            self.add_achievements(params[0])
+            self.experience(params[1])
+            return params[0]
+        elif self.level() < params[2]:
+            return "Not strong enough"
+            
+
+if __name__ == '__main__':
+
+    pass
+
+    Jackie_Chan = Warrior()
+    a = ["Defeated J han", 1000, 1] # [имя тренировки, количество получаемого опыта, минимально необходимый уровень]
+    # print(Jackie_Chan.training(a))
+    в = Jackie_Chan.rank()
+    print(Jackie_Chan.battle(в))
+    # print(Jackie_Chan.achievements())
