@@ -1,0 +1,18 @@
+class sort_list():
+
+    def sort(self, lst):
+        for left in range(len(lst)):
+            for right in range(len(lst)):
+                if lst[left] < lst[right]:
+                    lst[left], lst[right] = lst[right], lst[left]
+
+        result = lst
+        return result
+
+if __name__ == '__main__':
+
+    lst = [5, 90, 3, 2, -7, 0, 17, -10]
+
+    result = sort_list().sort(lst)
+
+    print(result)
