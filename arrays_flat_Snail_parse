@@ -1,0 +1,24 @@
+# из двумерного массива сделать плоский, но следуя змейкой по массиву
+
+import numpy as np
+class Snail_parse():
+
+    def snail(self, var):
+        var = np.array(var)
+        out = []
+        while (var.size):
+            out.append(var[0])  # take first row
+            var = var[1:].T[::-1]  # cut off first row and rotate counterclockwise
+        return np.concatenate(out)
+
+
+if __name__ == '__main__':
+    # Here we can make console input and check how function works
+
+    lst = [[1, 2, 3], 
+          [8, 9, 4], 
+          [7, 6, 5]]
+
+    result = Snail_parse().snail(lst)
+
+    print(result)
